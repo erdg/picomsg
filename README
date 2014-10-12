@@ -1,0 +1,6 @@
+PicoLisp bindings for nanomsg.
+
+
+nanomsg.l is the C API.
+
+picomsg.l is the start of a higher level PicoLisp library.
