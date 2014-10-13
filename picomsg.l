@@ -113,12 +113,94 @@
 
 
 ### Database ###
+# none of this works... yet. 
 
-# what exactly are we keeping track of?
+(class +Socket +Entity)
+   (rel nu    (+Number))     # number, maybe the fd returned by nn-socket?
+   (rel name  (+String))
+   (rel type  (+String))     # pub, sub, pair, etc. probably not necessary.
+   (rel binds (+List +Bind)) # local endpoints
+   (rel ends  (+List +End))  # remote endpoints
+   (rel log ()) # life story of socket. a memoir. history. fully searchable.
 
-(class +Node +Entity)
-   (rel nm) # name prefix
-   (rel typ) # pub, sub, bus, etc.
-   (rel binds) # local endpoints
-   (rel ends) # remote endpoints
-   (rel opts) # socket options
+   (rel linger            (+Number))     
+   (rel send_buffer       (+Number))
+   (rel receive_buffer    (+Number))
+   (rel send_timeout      (+Number))
+   (rel receive_timeout   (+Number))
+   (rel reconnect_ivl     (+Number))
+   (rel reconnect_ivl_max (+Number))
+   (rel send_priority     (+Number))
+   (rel receive_priority  (+Number))
+   (rel ipv4_only         (+Number))
+
+(dm open> ())
+(dm close> ())
+(dm bind> ())
+(dm connect> ())
+(dm send> ())
+(dm recv> ())
+
+
+
+# necessary? probably not; but it's great fun to make classes.
+(class +Connection +Entity)
+   (rel proto (+String)) # transport protocol 
+   (rel addr (+String))  # address
+
+(dm shutdown> ())
+
+(class +Bind +Connection)
+   (rel socks (+List +Socket))
+
+(class +End +Connection
+   (rel socks (+List +Socket))
+
+
+# pair 
+(class +Pair +Socket)
+
+
+# req/rep
+(class +Req +Socket)
+   (rel resend_ivl (+Number)) # resend interval
+
+(class +Rep +Socket)
+
+
+
+# pub/sub
+(class +Pub +Socket)
+
+
+(class +Sub +Socket)
+   (rel subs (+List +Subscription)) 
+
+(dm subscribe> (SOCK STR)
+   (nn-setsockopt SOCK NN_SUB NN_SUB_SUBSCRIBE STR (length STR)) )
+
+(dm unsubscribe> (SOCK STR)
+   (nn-setsockopt SOCK NN_SUB NN_SUB_UNSUBSCRIBE STR (length STR)) )
+
+
+(class +Subscription +Entity)
+   (rel name (+String))
+   (rel subs (+List +Sub)
+
+
+
+# survey
+(class +Surveyor +Socket)
+   (rel surv_deadline (+Number)) # ms
+
+(class +Respondent +Socket)
+
+
+# pipeline
+(class +Push +Socket)
+
+(class +Pull +Socket)
+
+
+# bus
+(class +Bus +Socket)
