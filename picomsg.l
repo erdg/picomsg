@@ -100,7 +100,7 @@
 
 (de pm-recv-str (SOCK) # Socket
    (prog1
-      (nn-recv SOCK '(_BUF (24 C . 24) . 0) 24 0)
+      (nn-recv SOCK '(_BUF (256 C . 256) . 0) 256 0)
       (prinl _BUF) ) )
 
 
@@ -116,13 +116,14 @@
 # none of this works... yet. 
 
 (class +Socket +Entity)
-   (rel nu    (+Number))     # number, maybe the fd returned by nn-socket?
+   (rel num   (+Number))     # number, maybe the fd returned by nn-socket?
    (rel name  (+String))
-   (rel type  (+String))     # pub, sub, pair, etc. probably not necessary.
+   (rel type  (+String))     # AF_SP or AF_SP_RAW
    (rel binds (+List +Bind)) # local endpoints
    (rel ends  (+List +End))  # remote endpoints
-   (rel log ()) # life story of socket. a memoir. history. fully searchable.
+   (rel log   ()) # life story of socket. a memoir. history. fully searchable.
 
+   # NN_SOL_SOCKET options
    (rel linger            (+Number))     
    (rel send_buffer       (+Number))
    (rel receive_buffer    (+Number))
@@ -134,47 +135,100 @@
    (rel receive_priority  (+Number))
    (rel ipv4_only         (+Number))
 
+
 (dm open> ())
-(dm close> ())
-(dm bind> ())
-(dm connect> ())
+
+(dm close> (SOCK)
+   (nn-close SOCK) )
+
+(dm bind> (ADDR)
+   (nn-bind This ADDR) )
+
+(dm connect> (ADDR)
+   (nn-connect This ADDR) )
+
+(dm shutdown> (ID)
+   (nn-shutdown This ID) )
+
 (dm send> ())
+(dm send-str> ())
+(dm send-osc> ())
+(dm send-coap> ())
+
 (dm recv> ())
+(dm recv-str> ())
+(dm recv-osc> ())
+(dm recv-coap> ())
 
 
 
-# necessary? probably not; but it's great fun to make classes.
-(class +Connection +Entity)
+# messages
+(class +Msg +Entity)
+   (rel num (+Number))
+   (rel stamp ()) # time/date 
+   (rel size (+Number))
+   (rel data (+Blob))
+
+(class +Pub_Msg +Msg)
+   (rel key (+String))  # subscription key
+
+(class +Osc_Msg ())
+(class +Coap_Msg ())
+
+
+
+# binds/connects
+(class +Endpoint +Entity)
+   (rel num   (+Number))
    (rel proto (+String)) # transport protocol 
-   (rel addr (+String))  # address
+   (rel addr  (+String))  # address
 
-(dm shutdown> ())
+(dm shutdown> (SOCK)
+   (nn-shutdown SOCK This) )
 
-(class +Bind +Connection)
+(class +Local_Endpoint +Endpoint)
    (rel socks (+List +Socket))
 
-(class +End +Connection
+(class +Remote_Endpoint +Endpoint)
    (rel socks (+List +Socket))
 
+
+
+## protocols
 
 # pair 
 (class +Pair +Socket)
+
+(dm open> ()
+   (nn-socket NN_PAIR) )
+
 
 
 # req/rep
 (class +Req +Socket)
    (rel resend_ivl (+Number)) # resend interval
 
+(dm open> ()
+   (nn-socket NN_REQ) )
+
+
 (class +Rep +Socket)
 
-
+(dm open> ()
+   (nn-socket NN_REP) )
 
 # pub/sub
 (class +Pub +Socket)
 
+(dm open> ()
+   (nn-socket NN_PUB) )
+
 
 (class +Sub +Socket)
    (rel subs (+List +Subscription)) 
+
+(dm open> ()
+   (nn-socket NN_SUB) )
 
 (dm subscribe> (SOCK STR)
    (nn-setsockopt SOCK NN_SUB NN_SUB_SUBSCRIBE STR (length STR)) )
@@ -187,20 +241,42 @@
    (rel name (+String))
    (rel subs (+List +Sub)
 
+(dm close> ()) # Removes the +Subscription from all subscribed +Socket's
+
 
 
 # survey
 (class +Surveyor +Socket)
    (rel surv_deadline (+Number)) # ms
 
+(dm open> () 
+   (nn-socket NN_SURVEYOR) )
+
+
+
 (class +Respondent +Socket)
+
+(dm open> ()
+   (nn-socket NN_RESPONDENT) )
+
 
 
 # pipeline
 (class +Push +Socket)
 
+(dm open> ()
+   (nn-socket NN_PUSH) )
+
+
 (class +Pull +Socket)
+
+(dm open> ()
+   (nn-socket NN_PULL) )
+
 
 
 # bus
 (class +Bus +Socket)
+
+(dm open> ()
+   (nn-socket NN_BUS) )
