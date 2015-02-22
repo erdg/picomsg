@@ -14,10 +14,27 @@
 (def 'NN_MSG -1)
 (def 'NN_SOL_SOCKET 0)
 
+## Generic Socket Options
+(def 'NN_LINGER 1)
+(def 'NN_SNDBUF 2)
+(def 'NN_RCVBUF 3)
+(def 'NN_SNDTIMEO 4)
+(def 'NN_RCVTIMEO 5)
+(def 'NN_RECONNECT_IVL 6)
+(def 'NN_RECONNECT_IVL_MAX 7)
+(def 'NN_SNDPRIO 8)
+(def 'NN_RCVPRIO 9)
+(def 'NN_SNDFD 10)
+(def 'NN_RCVFD 11)
+(def 'NN_DOMAIN 12)
+(def 'NN_PROTOCOL 13)
+(def 'NN_IPV4ONLY 14)
+(def 'NN_SOCKET_NAME 15) 
+
 ## Transports
 (def 'NN_INPROC -1)
 (def 'NN_IPC -2)
-(def 'nn_TCP -3)
+(def 'NN_TCP -3)
 
 ## Socket Types
 (def 'AF_SP 1)
@@ -82,6 +99,8 @@
 (de nn-setsockopt (SOCK LVL OPT OPT_VAL OPT_VAL_LEN)
    (native `libnanomsg* "nn_setsockopt" 'I SOCK LVL OPT OPT_VAL OPT_VAL_LEN) )
 
+(de nn-getsockopt (SOCK LVL OPT OPT_VAL OPT_VAL_LEN)
+   (native `libnanomsg* "nn_getsockopt" 'I SOCK LVL OPT OPT_VAL OPT_VAL_LEN) )
 
 
 (de nn-bind (SOCK ADDR)
@@ -119,3 +138,21 @@
 
 (de nn-strerror (NUM) # Error Number
    (native `libnanomsg* "nn_strerror" 'S NUM) )
+
+
+
+### Unit Tests ###
+(de nanomsg-tests ()
+   ~(assert (>= (nn-socket NN_PAIR) 0))
+   ~(assert (>= (nn-socket NN_REQ) 0))
+   ~(assert (>= (nn-socket NN_REP) 0))
+   ~(assert (>= (nn-socket NN_PUB) 0))
+   ~(assert (>= (nn-socket NN_SUB) 0))
+   ~(assert (>= (nn-socket NN_SURVEYOR) 0))
+   ~(assert (>= (nn-socket NN_RESPONDENT) 0))
+   ~(assert (>= (nn-socket NN_PUSH) 0))
+   ~(assert (>= (nn-socket NN_PULL) 0))
+   ~(assert (>= (nn-socket NN_BUS) 0))
+   (println "All systems go") )
+
+(nanomsg-tests)
